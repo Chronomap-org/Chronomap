@@ -26,7 +26,7 @@ indexed by timestamp, so debugging "why did this config change" or
 "what did this look like an hour ago" doesn't require a separate audit
 log bolted on afterward.
 
-It's not trying to replace a real database — it's an in-memory structure
+It's not trying to replace a real database - it's an in-memory structure
 for the case where you want dict-like ergonomics plus history: config
 stores, session state, feature flags, small time-series, that kind of
 thing.
@@ -44,21 +44,21 @@ Requires Python 3.8+. No required dependencies.
 
 ## Core features
 
-- **Time travel** — `get(key, timestamp=...)` returns the value as of
+- **Time travel** - `get(key, timestamp=...)` returns the value as of
   any point in history, with microsecond-precision lookups via binary
   search over each key's version list.
-- **Snapshots & rollback** — `snapshot()` / `rollback()`, or
+- **Snapshots & rollback** - `snapshot()` / `rollback()`, or
   `with cm.snapshot_context(): ...` for automatic rollback if the block
   raises.
-- **TTL** — `put(key, value, ttl=3600)`; expired keys are cleared lazily
+- **TTL** - `put(key, value, ttl=3600)`; expired keys are cleared lazily
   on access and (optionally) by a background thread.
-- **Queries** — `query()`, `aggregate()`, `count()` take plain Python
+- **Queries** - `query()`, `aggregate()`, `count()` take plain Python
   predicates/functions rather than a query language.
-- **Change hooks** — `on_change()` for global notifications,
+- **Change hooks** - `on_change()` for global notifications,
   `subscribe(key, callback)` for a single key.
-- **Auto-pruning** — cap history length per key with `max_history` so
+- **Auto-pruning** - cap history length per key with `max_history` so
   long-running processes don't grow unbounded.
-- **Async** — `AsyncChronoMap` is a separate asyncio-native
+- **Async** - `AsyncChronoMap` is a separate asyncio-native
   implementation with the same core surface.
 
 Full method-by-method reference lives in [`docs/API.md`](docs/API.md).
@@ -78,9 +78,9 @@ Full method-by-method reference lives in [`docs/API.md`](docs/API.md).
 
 This project is in the middle of being restructured from a single-file
 script into a proper package (see `CHANGELOG.md`). As of this restructure:
-**246 tests passing, 100% coverage** — reproducible yourself with
+**246 tests passing, 100% coverage** - reproducible yourself with
 `pytest tests/ --cov=chronomap`, not a claim to take on faith. It hasn't
-been through a broad external review yet — issues and PRs pointing out
+been through a broad external review yet - issues and PRs pointing out
 rough edges are genuinely welcome, not just a formality.
 
 ## Contributing
@@ -91,4 +91,4 @@ than that.
 
 ## License
 
-MIT — see [`LICENSE`](LICENSE).
+MIT - see [`LICENSE`](LICENSE).
