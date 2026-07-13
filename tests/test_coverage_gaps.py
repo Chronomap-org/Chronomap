@@ -30,6 +30,7 @@ from chronomap.cli import main as cli_main
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.cache
 def test_lru_cache_put_overwrites_existing_key_moves_to_end():
     cache = LRUCache(capacity=2)
     cache.put(("a", 1), "first")
@@ -47,6 +48,7 @@ def test_lru_cache_put_overwrites_existing_key_moves_to_end():
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.lock
 def test_rwlock_writer_waits_for_reader_to_release():
     lock = RWLock()
     order = []
@@ -70,6 +72,7 @@ def test_rwlock_writer_waits_for_reader_to_release():
     assert order == ["read-still-held", "write"]
 
 
+@pytest.mark.lock
 def test_rwlock_reader_waits_for_writer_to_release():
     lock = RWLock()
     order = []
@@ -98,6 +101,7 @@ def test_rwlock_reader_waits_for_writer_to_release():
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.memory
 def test_memory_monitor_estimate_size_swallows_typeerror():
     class Unsizeable:
         def __sizeof__(self):
@@ -106,6 +110,7 @@ def test_memory_monitor_estimate_size_swallows_typeerror():
     assert MemoryMonitor.estimate_size(Unsizeable()) == 0
 
 
+@pytest.mark.memory
 def test_memory_monitor_reset_warning():
     monitor = MemoryMonitor(max_memory_mb=100)
     monitor.warned = True
@@ -118,6 +123,7 @@ def test_memory_monitor_reset_warning():
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.ttl
 def test_ttl_cleanup_thread_start_is_idempotent():
     cm = ChronoMap(enable_ttl_cleanup=False)
     thread = TTLCleanupThread(__import__("weakref").ref(cm), interval=10)
@@ -128,6 +134,7 @@ def test_ttl_cleanup_thread_start_is_idempotent():
     thread.stop()
 
 
+@pytest.mark.ttl
 def test_ttl_cleanup_thread_exits_when_owner_is_garbage_collected():
     import weakref
 
@@ -143,6 +150,7 @@ def test_ttl_cleanup_thread_exits_when_owner_is_garbage_collected():
     assert not thread.thread.is_alive()
 
 
+@pytest.mark.ttl
 def test_ttl_cleanup_thread_survives_exception_in_loop():
     import weakref
 
@@ -158,6 +166,7 @@ def test_ttl_cleanup_thread_survives_exception_in_loop():
     thread.stop()
 
 
+@pytest.mark.ttl
 def test_ttl_cleanup_thread_stop_does_not_crash_when_del_runs_on_itself():
     """Regression test for a real race found while closing coverage gaps.
 
@@ -187,6 +196,7 @@ def test_ttl_cleanup_thread_stop_does_not_crash_when_del_runs_on_itself():
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.core
 def test_get_unlocked_strict_raises_when_expired():
     cm = ChronoMap(enable_ttl_cleanup=False)
     cm.put("k", "v", ttl=0.05)
@@ -195,6 +205,7 @@ def test_get_unlocked_strict_raises_when_expired():
         cm._get_unlocked("k", strict=True)
 
 
+@pytest.mark.core
 def test_get_unlocked_non_strict_returns_default_when_expired():
     cm = ChronoMap(enable_ttl_cleanup=False)
     cm.put("k", "v", ttl=0.05)
@@ -202,17 +213,20 @@ def test_get_unlocked_non_strict_returns_default_when_expired():
     assert cm._get_unlocked("k", default="fallback") == "fallback"
 
 
+@pytest.mark.core
 def test_get_unlocked_strict_raises_when_missing():
     cm = ChronoMap()
     with pytest.raises(ChronoMapKeyError):
         cm._get_unlocked("missing", strict=True)
 
 
+@pytest.mark.core
 def test_get_unlocked_non_strict_returns_default_when_missing():
     cm = ChronoMap()
     assert cm._get_unlocked("missing", default="fallback") == "fallback"
 
 
+@pytest.mark.core
 def test_get_unlocked_strict_raises_when_timestamp_before_first_version():
     cm = ChronoMap()
     cm.put("k", "v", timestamp=100)
@@ -220,6 +234,7 @@ def test_get_unlocked_strict_raises_when_timestamp_before_first_version():
         cm._get_unlocked("k", timestamp=50, strict=True)
 
 
+@pytest.mark.core
 def test_get_unlocked_non_strict_returns_default_when_timestamp_before_first_version():
     cm = ChronoMap()
     cm.put("k", "v", timestamp=100)
@@ -232,6 +247,7 @@ def test_get_unlocked_non_strict_returns_default_when_timestamp_before_first_ver
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.core
 def test_validate_timestamp_rejects_non_numeric_directly():
     cm = ChronoMap()
     with pytest.raises(ChronoMapTypeError):
@@ -243,17 +259,20 @@ def test_validate_timestamp_rejects_non_numeric_directly():
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.core
 def test_subscribe_rejects_non_callable():
     cm = ChronoMap()
     with pytest.raises(ChronoMapTypeError):
         cm.subscribe("key", "not callable")
 
 
+@pytest.mark.core
 def test_unsubscribe_key_never_subscribed_returns_false():
     cm = ChronoMap()
     assert cm.unsubscribe("never-subscribed", lambda *a: None) is False
 
 
+@pytest.mark.core
 def test_unsubscribe_last_callback_removes_key_entry():
     cm = ChronoMap()
     cb = lambda old, new, ts: None
@@ -262,6 +281,7 @@ def test_unsubscribe_last_callback_removes_key_entry():
     assert "key" not in cm._key_subscribers
 
 
+@pytest.mark.core
 def test_remove_change_callback_not_registered_returns_false():
     cm = ChronoMap()
     assert cm.remove_change_callback(lambda *a: None) is False
@@ -272,6 +292,7 @@ def test_remove_change_callback_not_registered_returns_false():
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.core
 def test_put_out_of_order_timestamp_inserts_in_place():
     cm = ChronoMap()
     cm.put("k", "newer", timestamp=200)
@@ -279,6 +300,7 @@ def test_put_out_of_order_timestamp_inserts_in_place():
     assert cm.history("k") == [(100, "older"), (200, "newer")]
 
 
+@pytest.mark.core
 def test_put_many_out_of_order_timestamp_inserts_in_place():
     cm = ChronoMap()
     cm.put_many({"k": "newer"}, timestamp=200)
@@ -286,6 +308,7 @@ def test_put_many_out_of_order_timestamp_inserts_in_place():
     assert cm.history("k") == [(100, "older"), (200, "newer")]
 
 
+@pytest.mark.core
 def test_put_many_second_call_reads_existing_old_value():
     cm = ChronoMap()
     changes = []
@@ -295,6 +318,7 @@ def test_put_many_second_call_reads_existing_old_value():
     assert changes == [(None, 1), (1, 2)]
 
 
+@pytest.mark.ttl
 def test_put_many_negative_ttl_raises():
     cm = ChronoMap()
     with pytest.raises(ChronoMapValueError):
@@ -308,6 +332,7 @@ def test_put_many_negative_ttl_raises():
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.core
 def test_get_strict_raises_on_second_expiry_check():
     cm = ChronoMap(cache_size=0, enable_ttl_cleanup=False)
     cm.put("key", "value")
@@ -324,6 +349,7 @@ def test_get_strict_raises_on_second_expiry_check():
         cm.get("key", strict=True)
 
 
+@pytest.mark.core
 def test_get_non_strict_returns_default_on_second_expiry_check():
     cm = ChronoMap(cache_size=0, enable_ttl_cleanup=False)
     cm.put("key", "value")
@@ -339,6 +365,7 @@ def test_get_non_strict_returns_default_on_second_expiry_check():
     assert cm.get("key", default="fallback") == "fallback"
 
 
+@pytest.mark.core
 def test_get_strict_raises_when_timestamp_before_first_version():
     cm = ChronoMap(cache_size=0)
     cm.put("key", "value", timestamp=100)
@@ -346,12 +373,14 @@ def test_get_strict_raises_when_timestamp_before_first_version():
         cm.get("key", timestamp=50, strict=True)
 
 
+@pytest.mark.core
 def test_get_or_set_rejects_non_callable_factory():
     cm = ChronoMap()
     with pytest.raises(ChronoMapTypeError):
         cm.get_or_set("k", "not callable")
 
 
+@pytest.mark.ttl
 def test_get_or_set_rejects_non_positive_ttl():
     cm = ChronoMap()
     with pytest.raises(ChronoMapValueError):
@@ -363,6 +392,7 @@ def test_get_or_set_rejects_non_positive_ttl():
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.core
 def test_query_skips_expired_keys():
     cm = ChronoMap(enable_ttl_cleanup=False)
     cm.put("temp", 100, ttl=0.05)
@@ -377,6 +407,7 @@ def test_query_skips_expired_keys():
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.core
 def test_prune_history_on_unknown_key_returns_zero():
     cm = ChronoMap()
     assert cm.prune_history("never-existed") == 0
@@ -387,6 +418,7 @@ def test_prune_history_on_unknown_key_returns_zero():
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.core
 def test_get_range_on_expired_key_returns_empty():
     cm = ChronoMap(enable_ttl_cleanup=False)
     cm.put("k", "v", ttl=0.05)
@@ -394,11 +426,13 @@ def test_get_range_on_expired_key_returns_empty():
     assert cm.get_range("k") == []
 
 
+@pytest.mark.core
 def test_get_range_on_unknown_key_returns_empty():
     cm = ChronoMap()
     assert cm.get_range("never-existed") == []
 
 
+@pytest.mark.core
 def test_get_latest_keys_skips_expired():
     cm = ChronoMap(enable_ttl_cleanup=False)
     cm.put("temp", "v", ttl=0.05)
@@ -413,18 +447,21 @@ def test_get_latest_keys_skips_expired():
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.snapshot
 def test_diff_invalid_type_raises():
     cm = ChronoMap()
     with pytest.raises(ChronoMapTypeError):
         cm.diff({"not": "a chronomap"})
 
 
+@pytest.mark.snapshot
 def test_diff_detailed_invalid_type_raises():
     cm = ChronoMap()
     with pytest.raises(ChronoMapTypeError):
         cm.diff_detailed({"not": "a chronomap"})
 
 
+@pytest.mark.snapshot
 def test_diff_flags_key_when_expiry_status_differs():
     cm1 = ChronoMap(enable_ttl_cleanup=False)
     cm2 = ChronoMap(enable_ttl_cleanup=False)
@@ -436,6 +473,7 @@ def test_diff_flags_key_when_expiry_status_differs():
     assert "k" in changed
 
 
+@pytest.mark.snapshot
 def test_diff_detailed_skips_key_when_either_side_expired():
     cm1 = ChronoMap(enable_ttl_cleanup=False)
     cm2 = ChronoMap(enable_ttl_cleanup=False)
@@ -451,6 +489,7 @@ def test_diff_detailed_skips_key_when_either_side_expired():
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.ttl
 def test_merge_timestamp_strategy_propagates_later_ttl():
     cm1 = ChronoMap(enable_ttl_cleanup=False)
     cm2 = ChronoMap(enable_ttl_cleanup=False)
@@ -463,6 +502,7 @@ def test_merge_timestamp_strategy_propagates_later_ttl():
     assert cm1._ttl["k"] == 2000.0
 
 
+@pytest.mark.ttl
 def test_merge_overwrite_strategy_copies_ttl():
     cm1 = ChronoMap(enable_ttl_cleanup=False)
     cm2 = ChronoMap(enable_ttl_cleanup=False)
@@ -477,6 +517,7 @@ def test_merge_overwrite_strategy_copies_ttl():
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.core
 def test_history_on_expired_key_returns_empty():
     cm = ChronoMap(enable_ttl_cleanup=False)
     cm.put("k", "v", ttl=0.05)
@@ -489,6 +530,7 @@ def test_history_on_expired_key_returns_empty():
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.core
 def test_to_dataframe_skips_expired_keys():
     pytest.importorskip("pandas")
     cm = ChronoMap(enable_ttl_cleanup=False)
@@ -504,12 +546,14 @@ def test_to_dataframe_skips_expired_keys():
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.core
 def test_eq_against_non_chronomap_is_false():
     cm = ChronoMap()
     assert (cm == "not a chronomap") is False
     assert cm != "not a chronomap"
 
 
+@pytest.mark.snapshot
 def test_snapshot_time_property():
     cm = ChronoMap()
     assert cm.snapshot_time is None
@@ -522,6 +566,7 @@ def test_snapshot_time_property():
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.core
 def test_from_dict_unknown_compression_marker_raises():
     with pytest.raises(ChronoMapValueError):
         ChronoMap.from_dict(b"not-a-real-method|somebytes")
@@ -707,6 +752,7 @@ async def test_async_unsubscribe_unknown_callback_returns_false():
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.cli
 def test_cli_main_show_command(tmp_path, capsys):
     cm = ChronoMap()
     cm.put("a", 1)
@@ -719,6 +765,7 @@ def test_cli_main_show_command(tmp_path, capsys):
     assert "a: 1" in capsys.readouterr().out
 
 
+@pytest.mark.cli
 def test_cli_main_no_subcommand_prints_help_and_returns_1(capsys):
     exit_code = cli_main([])
     assert exit_code == 1

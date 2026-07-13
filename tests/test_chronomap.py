@@ -35,6 +35,7 @@ from chronomap import (
 # ============================================================================
 
 
+@pytest.mark.core
 class TestBasicOperations:
     """Test core put, get, delete operations."""
 
@@ -97,6 +98,7 @@ class TestBasicOperations:
 # ============================================================================
 
 
+@pytest.mark.cache
 class TestLRUCache:
     """Test LRU cache functionality."""
 
@@ -184,6 +186,7 @@ class TestLRUCache:
 # ============================================================================
 
 
+@pytest.mark.core
 class TestAutoPruning:
     """Test auto-pruning with max_history."""
 
@@ -245,6 +248,7 @@ class TestAutoPruning:
 # ============================================================================
 
 
+@pytest.mark.ttl
 class TestBackgroundTTLCleanup:
     """Test background TTL cleanup thread."""
 
@@ -280,6 +284,7 @@ class TestBackgroundTTLCleanup:
 # ============================================================================
 
 
+@pytest.mark.memory
 class TestMemoryMonitoring:
     """Test memory limits and monitoring."""
 
@@ -308,6 +313,7 @@ class TestMemoryMonitoring:
 # ============================================================================
 
 
+@pytest.mark.core
 class TestEnhancedCompression:
     """Test multiple compression algorithms."""
 
@@ -402,6 +408,7 @@ class TestEnhancedCompression:
 # ============================================================================
 
 
+@pytest.mark.ttl
 class TestTTL:
     """Test TTL and key expiration."""
 
@@ -447,6 +454,7 @@ class TestTTL:
 # ============================================================================
 
 
+@pytest.mark.core
 class TestBatchOperations:
     """Test batch put and delete operations."""
 
@@ -491,6 +499,7 @@ class TestBatchOperations:
 # ============================================================================
 
 
+@pytest.mark.core
 class TestAdvancedQueries:
     """Test range queries and latest keys."""
 
@@ -535,6 +544,7 @@ class TestAdvancedQueries:
 # ============================================================================
 
 
+@pytest.mark.snapshot
 class TestSnapshotDiffRollback:
     """Test snapshot, diff, and rollback functionality."""
 
@@ -600,6 +610,7 @@ class TestSnapshotDiffRollback:
 # ============================================================================
 
 
+@pytest.mark.core
 class TestMerge:
     """Test merge functionality."""
 
@@ -654,6 +665,7 @@ class TestMerge:
 # ============================================================================
 
 
+@pytest.mark.core
 class TestMagicMethods:
     """Test Pythonic magic methods."""
 
@@ -723,6 +735,7 @@ class TestMagicMethods:
 # ============================================================================
 
 
+@pytest.mark.core
 class TestIteration:
     """Test iteration methods."""
 
@@ -757,6 +770,7 @@ class TestIteration:
 # ============================================================================
 
 
+@pytest.mark.core
 class TestUtilityMethods:
     """Test utility methods."""
 
@@ -866,6 +880,7 @@ class TestUtilityMethods:
 # ============================================================================
 
 
+@pytest.mark.core
 class TestValidation:
     """Test input validation."""
 
@@ -895,6 +910,7 @@ class TestValidation:
 # ============================================================================
 
 
+@pytest.mark.core
 class TestPersistence:
     """Test serialization and persistence."""
 
@@ -949,6 +965,7 @@ class TestPersistence:
 # ============================================================================
 
 
+@pytest.mark.core
 class TestThreadSafety:
     """Test thread safety of operations."""
 
@@ -1029,6 +1046,7 @@ class TestThreadSafety:
 # ============================================================================
 
 
+@pytest.mark.core
 class TestEdgeCases:
     """Test edge cases and corner scenarios."""
 
@@ -1082,6 +1100,7 @@ class TestEdgeCases:
 # ============================================================================
 
 
+@pytest.mark.core
 class TestDebugMode:
     """Test debug logging."""
 
@@ -1097,6 +1116,7 @@ class TestDebugMode:
 # ============================================================================
 
 
+@pytest.mark.core
 class TestEventHooks:
     """Test event callback functionality."""
 
@@ -1227,6 +1247,7 @@ class TestEventHooks:
 # ============================================================================
 
 
+@pytest.mark.core
 class TestQueryAnalytics:
     """Test query and analytics features."""
 
@@ -1272,6 +1293,7 @@ class TestQueryAnalytics:
 # ============================================================================
 
 
+@pytest.mark.core
 class TestHistoryManagement:
     """Test history pruning and management."""
 
@@ -1318,6 +1340,7 @@ class TestHistoryManagement:
 # ============================================================================
 
 
+@pytest.mark.core
 class TestContextManager:
     """Test snapshot context manager."""
 
@@ -1347,6 +1370,7 @@ class TestContextManager:
 # ============================================================================
 
 
+@pytest.mark.core
 class TestStatistics:
     """Test operation statistics tracking."""
 
@@ -1401,6 +1425,7 @@ class TestStatistics:
 # ============================================================================
 
 
+@pytest.mark.core
 class TestPandasExport:
     """Test Pandas DataFrame export."""
 
@@ -1437,6 +1462,7 @@ class TestPandasExport:
 # ============================================================================
 
 
+@pytest.mark.lock
 class TestConcurrency:
     """Test concurrency with read-write locks."""
 
@@ -1490,6 +1516,7 @@ class TestConcurrency:
 # ============================================================================
 
 
+@pytest.mark.async_map
 class TestAsyncChronoMap:
     """Test async version."""
 
@@ -1612,6 +1639,7 @@ class TestAsyncChronoMap:
 # ============================================================================
 
 
+@pytest.mark.core
 class TestIntegration:
     """Integration tests combining multiple features."""
 
@@ -1695,6 +1723,7 @@ class TestIntegration:
 # ============================================================================
 
 
+@pytest.mark.core
 class TestBackwardCompatibility:
     """Ensure old save-file formats still load correctly."""
 

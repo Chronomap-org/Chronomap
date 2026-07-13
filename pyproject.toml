@@ -44,6 +44,16 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+markers = [
+    "core: core ChronoMap read/write/query/merge/history behavior",
+    "cache: LRUCache-specific tests",
+    "lock: RWLock / thread-safety / concurrency tests",
+    "memory: memory monitoring / estimation tests",
+    "ttl: TTL expiry and background cleanup thread tests",
+    "snapshot: snapshot, rollback, and diff tests",
+    "async_map: AsyncChronoMap tests",
+    "cli: command-line interface tests",
+]
 
 [tool.black]
 line-length = 110

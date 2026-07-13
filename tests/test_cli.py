@@ -20,6 +20,7 @@ from chronomap.cli import (
 from chronomap import ChronoMap
 
 
+@pytest.mark.cli
 class TestCLIHelpers:
     """Test CLI helper functions parse_value, format_timestamp, and colorize."""
 
@@ -71,6 +72,7 @@ class TestCLIHelpers:
         assert colorize(text, color) == f"{color}{text}{Colors.END}"
 
 
+@pytest.mark.cli
 class TestCLILoadDisplay:
     """Test loading and displaying files via CLI load_and_display function."""
 

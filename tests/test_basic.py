@@ -19,12 +19,14 @@ import pytest
 from chronomap import AsyncChronoMap, ChronoMap, ChronoMapKeyError
 
 
+@pytest.mark.core
 def test_put_get_roundtrip():
     cm = ChronoMap(enable_ttl_cleanup=False)
     cm["a"] = 1
     assert cm["a"] == 1
 
 
+@pytest.mark.core
 def test_history_keeps_all_versions():
     cm = ChronoMap(enable_ttl_cleanup=False)
     cm.put("a", 1, timestamp=1.0)
@@ -32,6 +34,7 @@ def test_history_keeps_all_versions():
     assert cm.history("a") == [(1.0, 1), (2.0, 2)]
 
 
+@pytest.mark.core
 def test_time_travel():
     cm = ChronoMap(enable_ttl_cleanup=False)
     cm.put("a", "old", timestamp=1.0)
@@ -40,12 +43,14 @@ def test_time_travel():
     assert cm.get("a", timestamp=2.5) == "new"
 
 
+@pytest.mark.core
 def test_strict_get_raises():
     cm = ChronoMap(enable_ttl_cleanup=False)
     with pytest.raises(ChronoMapKeyError):
         cm.get("missing", strict=True)
 
 
+@pytest.mark.snapshot
 def test_snapshot_and_rollback():
     cm = ChronoMap(enable_ttl_cleanup=False)
     cm["a"] = 1
@@ -55,6 +60,7 @@ def test_snapshot_and_rollback():
     assert cm["a"] == 1
 
 
+@pytest.mark.snapshot
 def test_snapshot_context_rolls_back_on_exception():
     cm = ChronoMap(enable_ttl_cleanup=False)
     cm["a"] = 1
@@ -65,6 +71,7 @@ def test_snapshot_context_rolls_back_on_exception():
     assert cm["a"] == 1
 
 
+@pytest.mark.core
 def test_merge_timestamp_strategy_does_not_crash_on_out_of_order_writes():
     """Regression test for the merge() bug found during the package split:
     the out-of-order insert branch referenced an undefined `value` and
@@ -82,6 +89,7 @@ def test_merge_timestamp_strategy_does_not_crash_on_out_of_order_writes():
     assert a.history("k") == [(1.0, "first"), (2.0, "second"), (3.0, "third")]
 
 
+@pytest.mark.core
 def test_auto_prune_respects_max_history():
     cm = ChronoMap(max_history=3, enable_ttl_cleanup=False)
     for i in range(10):
@@ -90,6 +98,7 @@ def test_auto_prune_respects_max_history():
     assert cm.history("k")[-1] == (9.0, 9)
 
 
+@pytest.mark.ttl
 def test_ttl_expiry():
     cm = ChronoMap(enable_ttl_cleanup=False)
     cm.put("session", "token", ttl=0.05)
@@ -98,6 +107,7 @@ def test_ttl_expiry():
     assert "session" not in cm
 
 
+@pytest.mark.core
 def test_query_and_aggregate():
     cm = ChronoMap(enable_ttl_cleanup=False)
     cm.put_many({"a": 10, "b": 20, "c": 30})
@@ -105,6 +115,7 @@ def test_query_and_aggregate():
     assert cm.aggregate(sum) == 60
 
 
+@pytest.mark.core
 def test_get_or_set_only_calls_factory_once():
     cm = ChronoMap(enable_ttl_cleanup=False)
     calls = []

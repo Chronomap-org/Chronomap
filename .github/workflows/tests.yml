@@ -14,8 +14,66 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    name: Detect changed subsystems
+    runs-on: ubuntu-latest
+    outputs:
+      markers: ${{ steps.filter.outputs.changes }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            core:
+              - 'src/chronomap/core.py'
+              - 'src/chronomap/__init__.py'
+              - 'src/chronomap/exceptions.py'
+              - 'tests/test_chronomap.py'
+              - 'tests/test_basic.py'
+              - 'tests/test_coverage_gaps.py'
+            cache:
+              - 'src/chronomap/_cache.py'
+            lock:
+              - 'src/chronomap/_lock.py'
+            memory:
+              - 'src/chronomap/_memory.py'
+            ttl:
+              - 'src/chronomap/_ttl_cleanup.py'
+            snapshot:
+              - 'src/chronomap/_snapshot.py'
+            async_map:
+              - 'src/chronomap/asynchronous.py'
+            cli:
+              - 'src/chronomap/cli.py'
+              - 'tests/test_cli.py'
+
+  modules:
+    name: "Subsystem: ${{ matrix.marker }}"
+    needs: changes
+    if: needs.changes.outputs.markers != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        marker: ${{ fromJson(needs.changes.outputs.markers) }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install package with dev + pandas extras
+        run: pip install -e ".[dev,pandas]"
+
+      - name: Run ${{ matrix.marker }} tests only
+        run: pytest tests/ -v -m "${{ matrix.marker }}"
+
   test:
-    name: Python ${{ matrix.python-version }}
+    name: Python ${{ matrix.python-version }} (full suite)
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
