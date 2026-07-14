@@ -18,7 +18,14 @@ import time
 
 import pytest
 
-from chronomap import AsyncChronoMap, ChronoMap, ChronoMapKeyError, ChronoMapTypeError, ChronoMapValueError
+from chronomap import (
+    AsyncChronoMap,
+    ChronoMap,
+    ChronoMapKeyError,
+    ChronoMapMemoryError,
+    ChronoMapTypeError,
+    ChronoMapValueError,
+)
 from chronomap._cache import LRUCache
 from chronomap._lock import RWLock
 from chronomap._memory import MemoryMonitor
@@ -108,6 +115,39 @@ def test_memory_monitor_estimate_size_swallows_typeerror():
             raise TypeError("nope")
 
     assert MemoryMonitor.estimate_size(Unsizeable()) == 0
+
+
+@pytest.mark.memory
+def test_memory_monitor_estimate_size_counts_nested_contents():
+    # Regression test: sys.getsizeof() alone only sees a dict's shallow
+    # hash-table overhead, not the values stored in it. A store with a
+    # few keys but large nested history used to report only a few KB.
+    small_store = {"key": [(1.0, "x")]}
+    big_store = {i: [(float(t), "x" * 10_000) for t in range(50)] for i in range(200)}
+
+    small_size = MemoryMonitor.estimate_size(small_store)
+    big_size = MemoryMonitor.estimate_size(big_store)
+
+    assert big_size > small_size + 10_000_000
+
+
+@pytest.mark.memory
+def test_memory_monitor_enforces_limit_on_large_values_not_just_key_count():
+    # A single key with a huge value must still trip the limit - this
+    # is the scenario the shallow sys.getsizeof() check missed entirely.
+    monitor = MemoryMonitor(max_memory_mb=1)
+    store = {"one_key": [(1.0, "x" * 5_000_000)]}  # ~5MB value
+
+    with pytest.raises(ChronoMapMemoryError):
+        monitor.check_memory(store, {})
+
+
+@pytest.mark.memory
+def test_memory_monitor_estimate_size_handles_cycles():
+    # A self-referential structure must not recurse forever.
+    cyclic = {}
+    cyclic["self"] = cyclic
+    MemoryMonitor.estimate_size(cyclic)
 
 
 @pytest.mark.memory
