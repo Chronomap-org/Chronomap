@@ -1065,8 +1065,7 @@ class ChronoMap:
         # back to tuples so history()'s documented List[Tuple[float, Any]]
         # contract holds regardless of the save format used.
         instance._store = {
-            key: [(version[0], version[1]) for version in versions]
-            for key, versions in raw_store.items()
+            key: [(version[0], version[1]) for version in versions] for key, versions in raw_store.items()
         }
         instance._ttl = deepcopy(data.get("ttl", {}))
         instance._snapshot_time = data.get("snapshot_time")
