@@ -1059,7 +1059,15 @@ class ChronoMap:
             data = pickle.loads(decompressed)
 
         instance = cls(debug=debug, use_rwlock=use_rwlock, max_history=data.get("max_history"), **kwargs)
-        instance._store = deepcopy(data.get("store", {}))
+        raw_store = deepcopy(data.get("store", {}))
+        # JSON (and any other format without native tuple support) round-trips
+        # each (timestamp, value) version as a [timestamp, value] list. Coerce
+        # back to tuples so history()'s documented List[Tuple[float, Any]]
+        # contract holds regardless of the save format used.
+        instance._store = {
+            key: [(version[0], version[1]) for version in versions]
+            for key, versions in raw_store.items()
+        }
         instance._ttl = deepcopy(data.get("ttl", {}))
         instance._snapshot_time = data.get("snapshot_time")
         return instance
