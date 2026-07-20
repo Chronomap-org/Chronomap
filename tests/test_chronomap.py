@@ -936,6 +936,21 @@ class TestPersistence:
             assert cm2["a"] == 1
             assert cm2["b"] == 2
 
+    def test_history_entries_stay_tuples_after_json_round_trip(self):
+        cm = ChronoMap()
+        cm.put("a", 1, timestamp=100)
+        cm.put("a", 2, timestamp=200)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            filepath = Path(tmpdir) / "test.json"
+            cm.save_json(filepath)
+            cm2 = ChronoMap.load_json(filepath)
+
+            loaded_history = cm2.history("a")
+            assert loaded_history == [(100.0, 1), (200.0, 2)]
+            assert all(isinstance(entry, tuple) for entry in loaded_history)
+            assert len(set(loaded_history)) == 2
+
     def test_save_load_pickle(self):
         cm = ChronoMap()
         cm.put_many({"a": 1, "b": 2, "c": [1, 2, 3]})

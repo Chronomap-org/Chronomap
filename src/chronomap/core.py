@@ -1059,7 +1059,10 @@ class ChronoMap:
             data = pickle.loads(decompressed)
 
         instance = cls(debug=debug, use_rwlock=use_rwlock, max_history=data.get("max_history"), **kwargs)
-        instance._store = deepcopy(data.get("store", {}))
+        raw_store = deepcopy(data.get("store", {}))
+        instance._store = {
+            key: [(version[0], version[1]) for version in versions] for key, versions in raw_store.items()
+        }
         instance._ttl = deepcopy(data.get("ttl", {}))
         instance._snapshot_time = data.get("snapshot_time")
         return instance
