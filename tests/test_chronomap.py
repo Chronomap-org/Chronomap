@@ -949,8 +949,6 @@ class TestPersistence:
             loaded_history = cm2.history("a")
             assert loaded_history == [(100.0, 1), (200.0, 2)]
             assert all(isinstance(entry, tuple) for entry in loaded_history)
-            # Tuples are hashable; lists aren't - this would raise TypeError
-            # before the fix.
             assert len(set(loaded_history)) == 2
 
     def test_save_load_pickle(self):
