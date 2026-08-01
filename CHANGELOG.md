@@ -5,6 +5,22 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [3.0.1] - 2026-08-01
+
+### Changed
+- Fix: load_json() returned history() entries as lists instead of tuples
+- Fix: MemoryMonitor.estimate_size() was shallow, missed nested store contents
+- Update README.md
+- test workflows are now updated
+- updating the description, notes, security and copyright
+- covering all test coverages
+- workflow
+- update
+
+### Maintenance
+- Bump actions/checkout from 4 to 7
+- Bump actions/setup-python from 5 to 6
+
 ### Added
 - Pytest markers (`core`, `cache`, `lock`, `memory`, `ttl`, `snapshot`,
   `async_map`, `cli`) applied across the whole test suite, so each
