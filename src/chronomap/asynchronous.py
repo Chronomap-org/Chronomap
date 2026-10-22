@@ -1036,8 +1036,8 @@ class AsyncChronoMap:
             self._stats["deletes"] += 1
             return True
 
-    async def delete_many(self, keys: List[Any]) -> int:
-        """Delete multiple keys under one lock; expired keys are skipped."""
+    async def delete_many(self, keys: Iterable[Any]) -> int:
+        """Delete keys from any iterable under one lock; expired keys are skipped."""
         keys = list(keys)
         for key in keys:
             self._validate_key(key)

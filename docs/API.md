@@ -356,7 +356,8 @@ removed = cm.clean_expired_keys()
 #### `delete(key)` and `delete_many(keys)`
 
 `delete()` removes all versions for a key and returns `True` if it existed.
-`delete_many()` returns the number of keys that were present.
+`delete_many()` accepts any iterable of keys, applies each key once, and
+returns the number that were present.
 
 ```python
 assert cm.delete("cpu") is True

@@ -1297,8 +1297,8 @@ class ChronoMap:
             raise ChronoMapTypeError("update() requires a mapping or iterable of key/value pairs") from exc
         self.put_many(items, timestamp=timestamp, ttl=ttl)
 
-    def delete_many(self, keys: List[Any]) -> int:
-        """Delete multiple keys under a single lock acquisition. Returns count deleted."""
+    def delete_many(self, keys: Iterable[Any]) -> int:
+        """Delete keys from any iterable under one lock. Returns the number deleted."""
         keys = list(keys)
         for key in keys:
             self._validate_key(key)
