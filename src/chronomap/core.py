@@ -1679,6 +1679,12 @@ class ChronoMap:
             stats["total_keys"] = sum(1 for key in self._store if not self._is_expired(key))
             stats["total_versions"] = sum(len(versions) for versions in self._store.values())
             stats["expired_keys"] = sum(1 for key in self._ttl if self._is_expired(key))
+            now = self._current_time()
+            live_deadlines = [
+                deadline - now for key, deadline in self._ttl.items() if key in self._store and deadline > now
+            ]
+            stats["ttl_keys"] = len(live_deadlines)
+            stats["next_expiry_seconds"] = min(live_deadlines) if live_deadlines else None
         finally:
             self._release_read()
         return stats

@@ -506,11 +506,14 @@ Returns operation counters plus current size information:
 ```python
 stats = cm.get_stats()
 # reads, writes, deletes, snapshots, auto_prunes,
-# total_keys, total_versions, expired_keys
+# total_keys, total_versions, expired_keys,
+# ttl_keys, next_expiry_seconds
 ```
 
-When the cache is enabled, `cache_hits`, `cache_misses`, `cache_size`, and
-`cache_hit_rate` are included. When the cleanup thread is enabled,
+`ttl_keys` counts live keys with a deadline, and `next_expiry_seconds` is the
+shortest remaining TTL (or `None` when no live key has one). When the cache is
+enabled, `cache_hits`, `cache_misses`, `cache_size`, and `cache_hit_rate` are
+included. When the cleanup thread is enabled,
 `ttl_cleanup_count` is included as well. WAL-backed maps also expose
 `journal_path`, `journal_bytes`, and `journal_sequence`.
 
