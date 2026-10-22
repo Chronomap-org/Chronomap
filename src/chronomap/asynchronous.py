@@ -1358,9 +1358,13 @@ class AsyncChronoMap:
         older_than: Optional[Union[float, str, datetime]] = None,
     ) -> int:
         """Prune every live key."""
+        self._validate_keep_last(keep_last)
+        cutoff = self._parse_timestamp(older_than) if older_than is not None else None
+        if cutoff is not None:
+            self._validate_timestamp(cutoff)
         total_removed = 0
         for key in await self.keys():
-            total_removed += await self.prune_history(key, keep_last, older_than)
+            total_removed += await self.prune_history(key, keep_last, cutoff)
         return total_removed
 
     async def clean_expired_keys(self) -> int:

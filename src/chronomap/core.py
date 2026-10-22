@@ -1172,9 +1172,13 @@ class ChronoMap:
         older_than: Optional[Union[float, str, datetime]] = None,
     ) -> int:
         """Prune every key. Returns the total number of versions removed."""
+        self._validate_keep_last(keep_last)
+        cutoff_ts = self._parse_timestamp(older_than) if older_than is not None else None
+        if cutoff_ts is not None:
+            self._validate_timestamp(cutoff_ts)
         total_removed = 0
         for key in list(self.keys()):
-            total_removed += self.prune_history(key, keep_last, older_than)
+            total_removed += self.prune_history(key, keep_last, cutoff_ts)
         return total_removed
 
     # -- batch operations ---------------------------------------------------
