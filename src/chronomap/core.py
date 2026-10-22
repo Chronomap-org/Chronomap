@@ -728,22 +728,29 @@ class ChronoMap:
             raise ChronoMapTypeError("default_factory must be callable")
         self._validate_ttl(ttl)
 
-        ts = self._current_time()
-        self._validate_timestamp(ts)
-        created = False
-        value: Any = None
+        self._acquire_write()
+        try:
+            self._purge_if_expired(key)
+            versions = self._store.get(key, [])
+            if versions:
+                self._stats["reads"] += 1
+                return versions[-1][1]
+        finally:
+            self._release_write()
+
+        value = default_factory()
 
         self._acquire_write()
         try:
             self._purge_if_expired(key)
-
             versions = self._store.get(key, [])
             if versions:
                 self._stats["reads"] += 1
                 return versions[-1][1]
 
-            value = default_factory()
-            expires_at = self._current_time() + ttl if ttl is not None else None
+            ts = self._current_time()
+            self._validate_timestamp(ts)
+            expires_at = ts + ttl if ttl is not None else None
             self._journal_append(
                 "put",
                 {
@@ -765,13 +772,11 @@ class ChronoMap:
             self._maybe_checkpoint()
 
             self._stats["writes"] += 1
-            created = True
             logger.debug("GET_OR_SET key=%r value=%r ttl=%s", key, value, ttl)
         finally:
             self._release_write()
 
-        if created:
-            self._trigger_change_callbacks(key, None, value, ts)
+        self._trigger_change_callbacks(key, None, value, ts)
         return value
 
     def get_or_default(self, key: Any, default: Any, ttl: Optional[float] = None) -> Any:

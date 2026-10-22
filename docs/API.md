@@ -263,8 +263,10 @@ Returns the current value if the key exists; otherwise calls
 value = cm.get_or_set("feature:beta", lambda: {"enabled": False}, ttl=600)
 ```
 
-The factory must be callable. It is not called when the key already has a live
-value.
+The factory must be callable. It runs without holding the map lock, so it may
+read or write the same map. It is not called when the key already has a live
+value; under contention it may run more than once, and only the first stored
+value wins.
 
 #### `get_or_default(key, default, ttl=None)`
 
