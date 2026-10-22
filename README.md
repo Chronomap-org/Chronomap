@@ -136,7 +136,8 @@ journal.
 - **Async** - `AsyncChronoMap` is a separate asyncio-native implementation
   for use inside event loops, including TTL refresh and batch operations.
 - **CLI inspection** - `python -m chronomap.cli show state.json` prints a
-  saved map's current state.
+  saved map's current state; the `ttl`, `expire`, and `persist` commands
+  inspect or update expiry metadata in place.
 
 ## Thread safety
 

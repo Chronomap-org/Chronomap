@@ -342,6 +342,66 @@ def _cmd_stats(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_ttl(args: argparse.Namespace) -> int:
+    cm = _load(args.path)
+    if args.keys:
+        keys = [_parse_key(raw, args.literal_key) for raw in args.keys]
+    else:
+        keys = [key for key in cm.keys() if cm.ttl_remaining(key) is not None]
+        if not keys:
+            if args.json:
+                print(_json_text({"path": str(args.path), "ttls": {}}))
+            else:
+                print("No TTLs tracked")
+            return 0
+
+    ttls = {key: cm.ttl_remaining(key) for key in keys}
+    if args.json:
+        print(_json_text({"path": str(args.path), "ttls": {str(key): value for key, value in ttls.items()}}))
+    else:
+        for key, remaining in ttls.items():
+            rendered = "none" if remaining is None else f"{remaining:.2f}s"
+            print(f"{_key_name(key)}: {rendered}")
+    return 0
+
+
+def _cmd_expire(args: argparse.Namespace) -> int:
+    cm = _load(args.path)
+    key = _parse_key(args.key, args.literal_key)
+    if not cm.expire(key, args.ttl):
+        raise CLIError(f"Key not found or expired: {_key_name(key)}")
+    _save(cm, args.path)
+
+    if args.json:
+        print(
+            _json_text(
+                {
+                    "key": key,
+                    "ttl": args.ttl,
+                    "expires_in": cm.ttl_remaining(key),
+                    "path": str(args.path),
+                }
+            )
+        )
+    else:
+        print(f"Set TTL for {_key_name(key)} to {args.ttl:g}s")
+    return 0
+
+
+def _cmd_persist(args: argparse.Namespace) -> int:
+    cm = _load(args.path)
+    key = _parse_key(args.key, args.literal_key)
+    if not cm.persist(key):
+        raise CLIError(f"Key has no TTL or is missing: {_key_name(key)}")
+    _save(cm, args.path)
+
+    if args.json:
+        print(_json_text({"key": key, "persisted": True, "path": str(args.path)}))
+    else:
+        print(f"Removed TTL from {_key_name(key)}")
+    return 0
+
+
 def _cmd_prune(args: argparse.Namespace) -> int:
     if args.keep_last is None and args.older_than is None:
         raise CLIError("Provide --keep-last, --older-than, or both")
@@ -496,6 +556,28 @@ def build_parser() -> argparse.ArgumentParser:
     stats_parser.add_argument("path")
     stats_parser.add_argument("--json", action="store_true", help="emit JSON")
     stats_parser.set_defaults(func=_cmd_stats)
+
+    ttl_parser = subparsers.add_parser("ttl", help="show remaining TTLs from a save file")
+    ttl_parser.add_argument("path")
+    ttl_parser.add_argument("keys", nargs="*", help="keys to inspect; defaults to every key with a TTL")
+    ttl_parser.add_argument("--literal-key", action="store_true", help="do not JSON-parse keys")
+    ttl_parser.add_argument("--json", action="store_true", help="emit JSON")
+    ttl_parser.set_defaults(func=_cmd_ttl)
+
+    expire_parser = subparsers.add_parser("expire", help="set a key's TTL and save the file")
+    expire_parser.add_argument("path")
+    expire_parser.add_argument("key")
+    expire_parser.add_argument("ttl", type=float, help="seconds until expiry")
+    expire_parser.add_argument("--literal-key", action="store_true", help="do not JSON-parse the key")
+    expire_parser.add_argument("--json", action="store_true", help="emit JSON")
+    expire_parser.set_defaults(func=_cmd_expire)
+
+    persist_parser = subparsers.add_parser("persist", help="remove a key's TTL and save the file")
+    persist_parser.add_argument("path")
+    persist_parser.add_argument("key")
+    persist_parser.add_argument("--literal-key", action="store_true", help="do not JSON-parse the key")
+    persist_parser.add_argument("--json", action="store_true", help="emit JSON")
+    persist_parser.set_defaults(func=_cmd_persist)
 
     prune_parser = subparsers.add_parser("prune", help="drop old versions and save the file")
     prune_parser.add_argument("path")
