@@ -801,8 +801,28 @@ class ChronoMap:
         try:
             for key in keys:
                 self._validate_key(key)
+                if self._is_expired(key):
+                    if self._cache:
+                        self._cache.invalidate(key)
+                    if strict:
+                        missing.append(key)
+                    continue
+
+                cache_key = (key, None if timestamp is None else ts)
+                if self._cache:
+                    cached = self._cache.get(cache_key, _CACHE_MISS)
+                    if cached is not _CACHE_MISS:
+                        self._stats["cache_hits"] += 1
+                        self._stats["reads"] += 1
+                        result[key] = cached
+                        continue
+                    self._stats["cache_misses"] += 1
+
                 found, value = self._lookup_unlocked(key, ts)
                 if found:
+                    if self._cache:
+                        self._cache.put(cache_key, value)
+                    self._stats["reads"] += 1
                     result[key] = value
                 elif strict:
                     missing.append(key)

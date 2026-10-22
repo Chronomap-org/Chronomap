@@ -136,6 +136,18 @@ cm.put("cpu", None)
 assert cm.exists("cpu") is True
 ```
 
+#### `get_many(keys, timestamp=None, *, strict=False)`
+
+Reads several keys at one timestamp under a single lock acquisition. Missing
+keys are omitted unless `strict=True`, in which case the first missing key
+raises `ChronoMapKeyError`. Results use the same read cache as `get()`, so
+repeated batch reads avoid additional history lookups.
+
+```python
+cm.put_many({"cpu": 0.4, "disk": 0.2})
+assert cm.get_many(["cpu", "disk", "missing"]) == {"cpu": 0.4, "disk": 0.2}
+```
+
 #### `get_range(key, start_ts=None, end_ts=None)`
 
 Returns every `(timestamp, value)` pair for one key in the inclusive range.
@@ -937,6 +949,7 @@ Available methods:
 | `await put_many(items, timestamp=None, ttl=None)` | Store several versions. |
 | `await pop_many(keys)` | Remove several keys and return their latest values. |
 | `await get(key, timestamp=None, default=None, *, strict=False)` | Read a version. |
+| `await get_many(keys, timestamp=None, *, strict=False)` | Read several cached versions. |
 | `await get_or_set(key, default_factory, ttl=None)` | Read or create a value. |
 | `await get_or_default(key, default, ttl=None)` | Plain-value form of `get_or_set()`. |
 | `await ttl_remaining(key)` | Seconds until expiry, or `None` when absent or persistent. |
