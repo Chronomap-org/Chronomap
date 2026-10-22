@@ -28,6 +28,12 @@ def make_history_map(history: int) -> ChronoMap:
     return chronomap
 
 
+def make_batch_map(keys: int) -> ChronoMap:
+    chronomap = ChronoMap(cache_size=0, enable_ttl_cleanup=False)
+    chronomap.put_many({index: index for index in range(keys)})
+    return chronomap
+
+
 @benchmark("get / 100k history")
 def benchmark_get():
     chronomap = make_history_map(100_000)
@@ -47,6 +53,21 @@ def benchmark_put():
         chronomap._store[index] = [(1.0, index)]
         chronomap.get(index)
     return lambda: chronomap.put(0, "updated")
+
+
+@benchmark("expire_many / 1k keys")
+def benchmark_expire_many():
+    chronomap = make_batch_map(1_000)
+    keys = list(range(1_000))
+    return lambda: chronomap.expire_many(keys, ttl=3600)
+
+
+@benchmark("ttl_remaining_many / 1k keys")
+def benchmark_ttl_remaining_many():
+    chronomap = make_batch_map(1_000)
+    keys = list(range(1_000))
+    chronomap.expire_many(keys, ttl=3600)
+    return lambda: chronomap.ttl_remaining_many(keys)
 
 
 @benchmark("query.distinct / 5k unique values")
