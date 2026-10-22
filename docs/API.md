@@ -656,6 +656,8 @@ restored = ChronoMap.from_dict(data, cache_size=0, enable_ttl_cleanup=False)
 
 Writes and reads the `to_dict()` shape as JSON. JSON has no non-string keys,
 so every key is coerced with `str()` on save. Use pickle when key types matter.
+Saves are written to a temporary file and atomically replace the destination,
+so a serialization failure leaves an existing file untouched.
 
 ```python
 cm.save_json("state.json")

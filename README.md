@@ -118,7 +118,7 @@ journal.
   Both `ChronoMap` and `AsyncChronoMap` support WAL mode.
 - **Memory guardrails** - `max_memory_mb` adds an approximate ceiling and
   warning to both map implementations; `memory_usage()` reports the estimate.
-- **Persistence** - checkpoint with `save_json()`, `save_pickle()`,
+- **Persistence** - checkpoint atomically with `save_json()`, `save_pickle()`,
   `to_dict()`, and the matching loaders.
 - **Version export** - stream every live version with `iter_rows()`, or build
   a pandas DataFrame with `to_dataframe()`.

@@ -26,6 +26,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Set, Tuple, Union
 
+from ._atomic import atomic_write
 from ._cache import LRUCache
 from ._journal import Journal, JournalCorruptionError, JournalError, read_checkpoint, write_checkpoint
 from ._lock import RWLock
@@ -1995,8 +1996,7 @@ class ChronoMap:
             "version": data.get("version"),
             "max_history": data.get("max_history"),
         }
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(json_data, f, indent=2)
+        atomic_write(path, json.dumps(json_data, indent=2).encode("utf-8"))
         logger.debug("SAVE_JSON to %s", file_path)
 
     @classmethod
@@ -2022,11 +2022,8 @@ class ChronoMap:
     def save_pickle(self, file_path: Union[str, Path], compress: Union[bool, str] = False) -> None:
         path = Path(file_path)
         data = self.to_dict(compress=compress)
-        with open(path, "wb") as f:
-            if isinstance(data, bytes):
-                f.write(data)
-            else:
-                pickle.dump(data, f)
+        payload = data if isinstance(data, bytes) else pickle.dumps(data)
+        atomic_write(path, payload)
         logger.debug("SAVE_PICKLE to %s (compressed=%s)", file_path, compress)
 
     @classmethod

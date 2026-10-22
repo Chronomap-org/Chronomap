@@ -32,6 +32,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, AsyncIterator, Callable, Dict, Iterable, List, Optional, Set, Tuple, Union
 
+from ._atomic import atomic_write
 from ._cache import LRUCache
 from ._journal import Journal, JournalCorruptionError, JournalError, read_checkpoint, write_checkpoint
 from ._memory import MemoryMonitor
@@ -1800,7 +1801,7 @@ class AsyncChronoMap:
             "max_history": raw_data.get("max_history"),
         }
         text = json.dumps(json_data, indent=2)
-        await self._run_blocking(path.write_text, text, encoding="utf-8")
+        await self._run_blocking(atomic_write, path, text.encode("utf-8"))
 
     @classmethod
     async def load_json(
@@ -1826,10 +1827,8 @@ class AsyncChronoMap:
         """Write a pickle (optionally compressed) in a worker thread."""
         path = Path(file_path)
         data = self.to_dict(compress=compress)
-        if isinstance(data, bytes):
-            await self._run_blocking(path.write_bytes, data)
-        else:
-            await self._run_blocking(path.write_bytes, pickle.dumps(data))
+        payload = data if isinstance(data, bytes) else pickle.dumps(data)
+        await self._run_blocking(atomic_write, path, payload)
 
     @classmethod
     async def load_pickle(
