@@ -368,10 +368,11 @@ def _build_map(
     kwargs: Dict[str, Any],
 ) -> ChronoMap:
     now = _time.time()
+    max_history = kwargs.pop("max_history", payload["max_history"])
     cm = ChronoMap(
         debug=debug,
         use_rwlock=use_rwlock,
-        max_history=payload["max_history"],
+        max_history=max_history,
         enable_ttl_cleanup=enable_ttl_cleanup,
         **kwargs,
     )
@@ -383,8 +384,8 @@ def _build_map(
         if drop_expired and deadline is not None and deadline <= now:
             continue
         versions = entry["versions"]
-        if payload["max_history"] is not None:
-            versions = versions[-payload["max_history"] :]
+        if max_history is not None:
+            versions = versions[-max_history:]
         store[key] = versions
         if deadline is not None:
             ttl[key] = deadline

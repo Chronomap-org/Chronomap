@@ -224,6 +224,47 @@ def test_max_history_trimming_while_loading():
 
 
 @pytest.mark.persistence
+def test_explicit_max_history_overrides_archive_limit():
+    cm = make_map()
+    cm.put("key", 1, timestamp=100)
+    cm.put("key", 2, timestamp=200)
+    cm.put("key", 3, timestamp=300)
+
+    restored = loads(dumps(cm), enable_ttl_cleanup=False, max_history=1)
+
+    assert restored._max_history == 1
+    assert restored.history("key") == [(300.0, 3)]
+
+
+@pytest.mark.persistence
+def test_explicit_none_disables_archive_max_history():
+    cm = make_map()
+    cm.put("key", 1, timestamp=100)
+    cm.put("key", 2, timestamp=200)
+    cm.put("key", 3, timestamp=300)
+    payload = json_payload(cm)
+    payload["max_history"] = 2
+
+    restored = loads(json_archive(payload), enable_ttl_cleanup=False, max_history=None)
+
+    assert restored._max_history is None
+    assert restored.history("key") == [(100.0, 1), (200.0, 2), (300.0, 3)]
+
+
+@pytest.mark.persistence
+def test_load_forwards_max_history_override(tmp_path):
+    cm = make_map()
+    cm.put("key", 1, timestamp=100)
+    cm.put("key", 2, timestamp=200)
+    path = tmp_path / "state.json"
+
+    dump(cm, path)
+    restored = load(path, enable_ttl_cleanup=False, max_history=1)
+
+    assert restored.history("key") == [(200.0, 2)]
+
+
+@pytest.mark.persistence
 def test_empty_map_roundtrip():
     restored = loads(dumps(make_map()), enable_ttl_cleanup=False)
 

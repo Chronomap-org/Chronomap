@@ -831,7 +831,9 @@ Returns the archive as `bytes` instead of writing a file.
 Read an archive from a path or byte string. The format is detected from the
 archive header; pass `format` only to reject an unexpected format. Remaining
 keyword arguments are forwarded to the `ChronoMap` constructor, for example
-`cache_size=0` or `enable_ttl_cleanup=False`.
+`cache_size=0` or `enable_ttl_cleanup=False`. An explicit `max_history`
+overrides the value stored in the archive; pass `max_history=None` to keep all
+stored versions.
 
 ```python
 from chronomap import load, loads
