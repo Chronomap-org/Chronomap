@@ -54,9 +54,9 @@ Run with the coverage report used by CI:
 pytest tests/ --cov=chronomap --cov-report=term-missing
 ```
 
-The current `main` branch collects **847 tests** and reports **100% statement
-coverage**. The numbers will grow as features are added; the expectation is
-that new behavior comes with tests and does not lower coverage.
+`main` reports **100% statement coverage**. The test count changes as features
+are added; use `pytest tests/ --collect-only -q` for the current number. New
+behavior comes with tests and must not lower coverage.
 
 Useful variants while working:
 
@@ -108,22 +108,22 @@ and makes ordering irrelevant.
 
 `pyproject.toml` registers the semantic markers:
 
-| Marker | Meaning | Current selection |
-| --- | --- | --- |
-| `core` | Core read/write/query/merge/history behavior | 269 |
-| `cache` | `LRUCache` behavior | 10 |
-| `lock` | `RWLock` and concurrency behavior | 5 |
-| `memory` | Memory monitor and size estimation | 22 |
-| `ttl` | TTL expiry and cleanup thread | 55 |
-| `snapshot` | Snapshot, rollback, and diff | 23 |
-| `async_map` | `AsyncChronoMap` behavior | 176 |
-| `cli` | CLI behavior | 81 |
-| `persistence` | Archive, codec, and WAL behavior | 186 |
-| `query` | Fluent value and version queries | 73 |
+| Marker | Meaning |
+| --- | --- |
+| `core` | Core read/write/query/merge/history behavior |
+| `cache` | `LRUCache` behavior |
+| `lock` | `RWLock` and concurrency behavior |
+| `memory` | Memory monitor and size estimation |
+| `ttl` | TTL expiry and cleanup thread |
+| `snapshot` | Snapshot, rollback, and diff |
+| `async_map` | `AsyncChronoMap` behavior |
+| `cli` | CLI behavior |
+| `persistence` | Archive, codec, and WAL behavior |
+| `query` | Fluent value and version queries |
 
-These are selection sizes, not a partition: markers drive the CI subsystem
-job, and a test can carry more than one semantic marker, so the counts can
-overlap and do not add up to the full collection.
+Markers drive the CI subsystem job. A test can carry more than one semantic
+marker, so marker selections overlap and do not partition the full suite. Use
+`pytest tests/ --collect-only -q -m core` to inspect a selection.
 
 Run one subsystem:
 
@@ -251,13 +251,12 @@ Run mypy:
 mypy src/chronomap --ignore-missing-imports
 ```
 
-The current `main` branch is clean under mypy. The CI type-check step is still
-marked `continue-on-error: true`, so it reports but does not fail the build.
-New code should stay clean; run mypy on the files you touch.
+`main` is clean under mypy, and CI fails the build on any new error. Run mypy
+on the files you touch before opening a pull request.
 
 ## What CI runs
 
-The workflow in `.github/workflows/tests.yml` has five jobs:
+The test-related jobs in `.github/workflows/tests.yml` are:
 
 1. **Detect changed subsystems**: maps changed paths to markers.
 2. **Subsystem tests**: runs only the selected marker groups on Python 3.12.
@@ -265,8 +264,8 @@ The workflow in `.github/workflows/tests.yml` has five jobs:
    3.11, 3.12, 3.13, and 3.14. The 3.12 run uploads `coverage.xml`.
 4. **Platform suite**: runs the complete suite with a 100% coverage gate on
    Windows and macOS with Python 3.12, exercising both WAL lock backends.
-5. **Formatting and type checking**: `black --check src/ tests/` is required;
-   mypy is informational.
+5. **Formatting**: `black --check src/ tests/` is required.
+6. **Type checking**: `mypy src/chronomap --ignore-missing-imports` is required.
 
 The subsystem job is a fast feedback loop for small changes. The full-suite
 job is the source of truth, especially when a change crosses modules.
