@@ -1729,7 +1729,10 @@ class ChronoMap:
                 "pandas is required for to_dataframe(). Install with: pip install chronomap[pandas]"
             ) from exc
 
-        return pd.DataFrame(list(self.iter_rows()))
+        return pd.DataFrame(
+            list(self.iter_rows()),
+            columns=["key", "value", "timestamp", "datetime", "version"],
+        )
 
     # -- container protocol -------------------------------------------------------
 

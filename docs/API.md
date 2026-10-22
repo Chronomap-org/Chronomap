@@ -698,6 +698,9 @@ pip install chronomap[pandas]
 frame = cm.to_dataframe()
 ```
 
+The frame always has `key`, `value`, `timestamp`, `datetime`, and `version`
+columns, including when the map is empty.
+
 ## Query builders
 
 The query layer provides lazy, chainable filters over current values and over

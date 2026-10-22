@@ -1641,7 +1641,10 @@ class AsyncChronoMap:
                 raise ImportError(
                     "pandas is required for to_dataframe(). " "Install with: pip install chronomap[pandas]"
                 ) from exc
-            return pd.DataFrame(rows)
+            return pd.DataFrame(
+                rows,
+                columns=["key", "value", "timestamp", "datetime", "version"],
+            )
 
         return await self._run_blocking(build)
 
