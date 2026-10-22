@@ -401,15 +401,17 @@ total_for_cpu = cm.aggregate(sum, keys=["cpu"])
 
 #### `count(predicate=None, timestamp=None)`
 
-Counts all non-expired keys, or only keys matching a predicate.
+Counts keys visible at the timestamp, or only keys matching a predicate.
 
 ```python
 assert cm.count() == 2
 assert cm.count(lambda key, value: value > 0.5) == 1
+assert cm.count(timestamp=150) == 1
 ```
 
 `query()` and `aggregate()` are O(n) scans over live keys. `count()` without a
-predicate uses the map's current size.
+predicate or timestamp uses the map's current size; with a timestamp it scans
+for keys that have a version visible at that time.
 
 ### Snapshots and rollback
 

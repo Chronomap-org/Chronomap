@@ -1115,9 +1115,17 @@ class ChronoMap:
         predicate: Optional[Callable[[Any, Any], bool]] = None,
         timestamp: Optional[Union[float, str, datetime]] = None,
     ) -> int:
-        """Count all keys, or just those matching predicate(key, value)."""
+        """Count keys visible at the timestamp, optionally matching a predicate."""
         if predicate is None:
-            return len(self)
+            if timestamp is None:
+                return len(self)
+            ts = self._parse_timestamp(timestamp)
+            self._validate_timestamp(ts)
+            self._acquire_read()
+            try:
+                return sum(1 for key in self._store if self._lookup_unlocked(key, ts)[0])
+            finally:
+                self._release_read()
         return len(self.query(predicate, timestamp))
 
     # -- history management ---------------------------------------------------
