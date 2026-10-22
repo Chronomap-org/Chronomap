@@ -1519,6 +1519,8 @@ class AsyncChronoMap:
             other_ttl = deepcopy(other._ttl)
 
         async with self._lock:
+            for key in other_store:
+                await self._purge_if_expired(key)
             await self._journal_append(
                 "merge",
                 {

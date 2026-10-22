@@ -1484,6 +1484,8 @@ class ChronoMap:
 
         self._acquire_write()
         try:
+            for key in other_store:
+                self._purge_if_expired(key)
             self._journal_append(
                 "merge",
                 {
