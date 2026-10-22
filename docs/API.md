@@ -380,7 +380,8 @@ Removes all keys, TTL entries, history, and cached values.
 #### `query(predicate, timestamp=None)`
 
 Returns a `{key: value}` dictionary for keys whose value at `timestamp`
-satisfies `predicate(key, value)`.
+satisfies `predicate(key, value)`. The predicate runs after the matching pairs
+have been snapshotted, so it may safely read or write the same map.
 
 ```python
 cm.put_many({"cpu": 0.4, "disk": 0.9})
@@ -390,7 +391,8 @@ assert busy == {"disk": 0.9}
 
 #### `aggregate(func, keys=None, timestamp=None)`
 
-Calls `func(values)` with the list of values for the selected keys.
+Calls `func(values)` with the list of values for the selected keys. Values are
+snapshotted first, and `func` runs without holding the map lock.
 
 ```python
 total = cm.aggregate(sum)

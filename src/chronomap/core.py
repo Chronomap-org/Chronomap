@@ -1075,14 +1075,19 @@ class ChronoMap:
         self._validate_timestamp(ts)
         self._acquire_read()
         try:
-            result = {}
+            pairs = []
             for key in self._store:
                 found, value = self._lookup_unlocked(key, ts)
-                if found and predicate(key, value):
-                    result[key] = value
-            return result
+                if found:
+                    pairs.append((key, value))
         finally:
             self._release_read()
+
+        result = {}
+        for key, value in pairs:
+            if predicate(key, value):
+                result[key] = value
+        return result
 
     def aggregate(
         self,
@@ -1101,9 +1106,9 @@ class ChronoMap:
                 found, val = self._lookup_unlocked(key, ts)
                 if found:
                     values.append(val)
-            return func(values) if values else None
         finally:
             self._release_read()
+        return func(values) if values else None
 
     def count(
         self,
