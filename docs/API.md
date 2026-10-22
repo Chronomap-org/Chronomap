@@ -636,7 +636,9 @@ recovery for both implementations.
 
 `to_dict()` returns a plain dictionary with `store`, `ttl`, `snapshot_time`,
 `version`, and `max_history`. Pass `compress=True` (zlib) or
-`compress="gzip"`, `"bz2"`, or `"lzma"` to get compressed bytes.
+`compress="gzip"`, `"bz2"`, or `"lzma"` to get compressed bytes. `from_dict()`
+rejects empty per-key histories and TTL entries without a stored key, and
+trims histories to the effective `max_history`.
 
 ```python
 data = cm.to_dict()

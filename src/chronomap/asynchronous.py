@@ -1719,6 +1719,8 @@ class AsyncChronoMap:
                 if normalized and timestamp < normalized[-1][0]:
                     raise ChronoMapValueError(f"History for key {key!r} is not sorted")
                 normalized.append((float(timestamp), version[1]))
+            if not normalized:
+                raise ChronoMapValueError(f"History for key {key!r} must not be empty")
             normalized_store[key] = normalized
 
         normalized_ttl: Dict[Any, float] = {}
@@ -1727,6 +1729,8 @@ class AsyncChronoMap:
                 raise ChronoMapTypeError(f"TTL deadline for key {key!r} must be numeric")
             if not math.isfinite(deadline):
                 raise ChronoMapValueError(f"TTL deadline for key {key!r} must be finite")
+            if key not in normalized_store:
+                raise ChronoMapValueError(f"TTL key {key!r} has no stored history")
             normalized_ttl[key] = float(deadline)
 
         snapshot_time = payload.get("snapshot_time")
@@ -1745,6 +1749,10 @@ class AsyncChronoMap:
             cache_size=cache_size,
             **options,
         )
+        if instance._max_history is not None:
+            normalized_store = {
+                key: versions[-instance._max_history :] for key, versions in normalized_store.items()
+            }
         instance._store = normalized_store
         instance._ttl = normalized_ttl
         instance._snapshot_time = snapshot_time
