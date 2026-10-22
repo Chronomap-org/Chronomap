@@ -1497,10 +1497,8 @@ class AsyncChronoMap:
         other_state, other_expired = await other._visibility_snapshot()
         changes = []
         for key in set(self_state) | set(other_state) | self_expired | other_expired:
-            if key in self_expired or key in other_expired:
-                continue
-            old_val = other_state.get(key, _MISSING)
-            new_val = self_state.get(key, _MISSING)
+            old_val = _MISSING if key in other_expired else other_state.get(key, _MISSING)
+            new_val = _MISSING if key in self_expired else self_state.get(key, _MISSING)
             if old_val != new_val:
                 changes.append(
                     (

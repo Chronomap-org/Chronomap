@@ -514,14 +514,15 @@ def test_diff_flags_key_when_expiry_status_differs():
 
 
 @pytest.mark.snapshot
-def test_diff_detailed_skips_key_when_either_side_expired():
+def test_diff_detailed_reports_key_when_either_side_expired():
     cm1 = ChronoMap(enable_ttl_cleanup=False)
     cm2 = ChronoMap(enable_ttl_cleanup=False)
     cm1.put("k", "v1", ttl=0.05)
     cm2.put("k", "v2")
     time.sleep(0.1)
 
-    assert cm1.diff_detailed(cm2) == []
+    assert cm1.diff_detailed(cm2) == [("k", "v2", None)]
+    assert cm2.diff_detailed(cm1) == [("k", None, "v2")]
 
 
 # ---------------------------------------------------------------------------

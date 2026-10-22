@@ -840,7 +840,8 @@ async def test_async_diff_handles_expiry_mismatch():
     await right.put("k", "value")
 
     assert await left.diff(right) == {"k"}
-    assert await left.diff_detailed(right) == []
+    assert await left.diff_detailed(right) == [("k", "value", None)]
+    assert await right.diff_detailed(left) == [("k", None, "value")]
 
     other_expired = await _expired_cache()
     assert await left.diff(other_expired) == set()
