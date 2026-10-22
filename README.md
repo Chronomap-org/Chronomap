@@ -62,6 +62,15 @@ Timestamps can be Unix numbers, `datetime` objects, or ISO-8601 strings.
 Expired keys are hidden from reads immediately and are removed lazily on
 access (or by the optional cleanup thread).
 
+Batch TTL operations take a single key iterable and one lock acquisition:
+
+```python
+cm.put_many({"a": 1, "b": 2})
+cm.expire_many(["a", "b"], ttl=60)
+cm.ttl_remaining_many(["a", "b"])   # seconds remaining per key
+cm.persist_many(["a", "b"])         # remove the deadlines
+```
+
 For crash recovery, point the map at a write-ahead journal:
 
 ```python
@@ -102,9 +111,11 @@ journal.
   raises.
 - **TTL** - `put(key, value, ttl=3600)`; inspect with `ttl_remaining()`,
   refresh with `expire()`, remove with `persist()`, and sweep with
-  `clean_expired_keys()` or the background cleanup thread.
-- **Batch operations** - `put_many()`, `get_many()`, `pop_many()`, and
-  `delete_many()` operate under a single lock acquisition.
+  `clean_expired_keys()` or the background cleanup thread. The `_many`
+  variants apply the same operations to multiple keys.
+- **Batch operations** - `put_many()`, `get_many()`, `pop_many()`,
+  `delete_many()`, `expire_many()`, `persist_many()`, and
+  `ttl_remaining_many()` operate under a single lock acquisition.
 - **Queries** - `query()`, `aggregate()`, and `count()` take ordinary
   Python callables instead of a query language.
 - **Change hooks** - `on_change()` for global notifications and
