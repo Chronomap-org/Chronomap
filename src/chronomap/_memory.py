@@ -30,11 +30,39 @@ class MemoryMonitor:
         self.warned = False
 
     @staticmethod
-    def estimate_size(obj: Any) -> int:
+    def estimate_size(obj: Any, _seen: Optional[set] = None) -> int:
+        """Recursively estimate the size of `obj`, including contents.
+
+        `sys.getsizeof()` alone only reports the shallow size of a
+        container (e.g. a dict's hash table), not what's stored inside
+        it. For ChronoMap's `_store`, that means the actual payload -
+        the values people put in - was invisible to the old check.
+        This walks dicts/lists/tuples/sets recursively, with a `_seen`
+        guard against double-counting shared objects and reference
+        cycles.
+        """
+        if _seen is None:
+            _seen = set()
+
+        obj_id = id(obj)
+        if obj_id in _seen:
+            return 0
+        _seen.add(obj_id)
+
         try:
-            return sys.getsizeof(obj)
+            size = sys.getsizeof(obj)
         except TypeError:
             return 0
+
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                size += MemoryMonitor.estimate_size(k, _seen)
+                size += MemoryMonitor.estimate_size(v, _seen)
+        elif isinstance(obj, (list, tuple, set, frozenset)):
+            for item in obj:
+                size += MemoryMonitor.estimate_size(item, _seen)
+
+        return size
 
     def check_memory(self, store: Dict, ttl: Dict) -> None:
         if self.max_memory_bytes is None:

@@ -15,16 +15,21 @@ permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: monthly-release
+  cancel-in-progress: false
+
 jobs:
   release:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -102,7 +107,7 @@ jobs:
           sed -i "s/__version__ = \".*\"/__version__ = \"$NEW_VERSION\"/" src/chronomap/_version.py
 
       - name: Open PR with the CHANGELOG + version bump
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "chore(release): ${{ steps.notes.outputs.tag }}"
           title: "Release ${{ steps.notes.outputs.tag }}: CHANGELOG + version bump"

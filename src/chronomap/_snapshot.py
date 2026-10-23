@@ -12,7 +12,7 @@ import it at runtime.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal, Optional
 
 if TYPE_CHECKING:
     from .core import ChronoMap
@@ -23,14 +23,15 @@ class SnapshotContext:
 
     def __init__(self, chronomap: "ChronoMap") -> None:
         self.chronomap = chronomap
-        self.snapshot = None
+        self.snapshot: Optional["ChronoMap"] = None
 
     def __enter__(self) -> "ChronoMap":
         self.snapshot = self.chronomap.snapshot()
         return self.chronomap
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
+    def __exit__(self, exc_type, exc_val, exc_tb) -> Literal[False]:
         if exc_type is not None:
+            assert self.snapshot is not None
             self.chronomap.rollback(self.snapshot)
         return False
 

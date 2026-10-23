@@ -134,3 +134,53 @@ async def test_async_put_get_roundtrip():
     cm = AsyncChronoMap()
     await cm.put("a", 1)
     assert await cm.get("a") == 1
+
+
+@pytest.mark.ttl
+def test_put_on_expired_key_is_visible():
+    """Regression: a stale TTL entry used to make the *new* value born expired."""
+    cm = ChronoMap(enable_ttl_cleanup=False)
+    cm.put("session", "old", ttl=0.05)
+    time.sleep(0.1)
+
+    cm.put("session", "new")
+
+    assert cm.get("session") == "new"
+    assert "session" in cm
+    assert [v for _, v in cm.history("session")] == ["new"]
+
+
+@pytest.mark.ttl
+def test_put_many_on_expired_key_is_visible():
+    cm = ChronoMap(enable_ttl_cleanup=False)
+    cm.put("a", 1, ttl=0.05)
+    time.sleep(0.1)
+
+    cm.put_many({"a": 2, "b": 3})
+
+    assert cm.get("a") == 2
+    assert cm.get("b") == 3
+
+
+@pytest.mark.ttl
+def test_put_on_expired_key_reports_no_old_value_to_callbacks():
+    cm = ChronoMap(enable_ttl_cleanup=False)
+    seen = []
+    cm.on_change(lambda key, old, new, ts: seen.append((key, old, new)))
+    cm.put("a", "old", ttl=0.05)
+    time.sleep(0.1)
+
+    cm.put("a", "new")
+
+    assert seen[-1] == ("a", None, "new")
+
+
+@pytest.mark.async_map
+async def test_async_put_on_expired_key_is_visible():
+    acm = AsyncChronoMap()
+    await acm.put("a", "old", ttl=0.05)
+    await asyncio.sleep(0.1)
+
+    await acm.put("a", "new")
+
+    assert await acm.get("a") == "new"

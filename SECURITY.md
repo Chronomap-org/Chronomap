@@ -18,8 +18,8 @@ Please **do not** open a public GitHub issue for security vulnerabilities.
 Instead, report it privately using one of these channels:
 
 - GitHub: use the **[Report a vulnerability](../../security/advisories/new)**
-  button under the Security tab (preferred — keeps discussion private
-  until a fix ships).
+  button under the Security tab (preferred, because it keeps discussion
+  private until a fix ships).
 - Email: devansh.jay.singh@gmail.com with a description and, if possible,
   a minimal reproduction.
 
@@ -35,7 +35,7 @@ ChronoMap is an in-memory data structure with no network I/O, so most
 don't apply. Relevant reports include things like:
 
 - Deserialization issues in `load_json` / `load_pickle` (especially
-  pickle, which is unsafe by design — see the docstring warning).
+  pickle, which is unsafe by design; see the docstring warning).
 - Denial-of-service via unbounded memory growth that isn't already
   documented/expected behavior.
 - Thread-safety bugs that could corrupt data across concurrent access.
