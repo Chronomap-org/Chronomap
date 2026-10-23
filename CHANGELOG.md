@@ -67,6 +67,11 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
   of failing immediately.
 
 ### Fixed
+- **Invalid TTLs were rejected after the write had already happened.**
+  `put()` / `put_many()` (and `AsyncChronoMap.put()`) inserted the value
+  before raising for `ttl <= 0`, leaving a write behind despite the
+  exception and, if the old value was cached, returning that stale value.
+  TTL is now validated before any mutation.
 - **`ChronoMap.merge(strategy='timestamp')` was broken.** The out-of-order
   insert branch referenced an undefined variable (`value` instead of
   `val`) and inserted into the wrong list (`versions`, the *source* data

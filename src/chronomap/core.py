@@ -280,6 +280,8 @@ class ChronoMap:
         self._validate_key(key)
         ts = self._parse_timestamp(timestamp) if timestamp is not None else self._current_time()
         self._validate_timestamp(ts)
+        if ttl is not None and ttl <= 0:
+            raise ChronoMapValueError(f"TTL must be positive, got {ttl}")
 
         self._acquire_write()
         try:
@@ -296,8 +298,6 @@ class ChronoMap:
                 versions.insert(idx, (ts, value))
 
             if ttl is not None:
-                if ttl <= 0:
-                    raise ChronoMapValueError(f"TTL must be positive, got {ttl}")
                 self._ttl[key] = self._current_time() + ttl
 
             self._auto_prune(key)
@@ -540,6 +540,8 @@ class ChronoMap:
         """Insert multiple key-value pairs under a single lock acquisition."""
         ts = self._parse_timestamp(timestamp) if timestamp is not None else self._current_time()
         self._validate_timestamp(ts)
+        if ttl is not None and ttl <= 0:
+            raise ChronoMapValueError(f"TTL must be positive, got {ttl}")
 
         self._acquire_write()
         try:
@@ -559,8 +561,6 @@ class ChronoMap:
                     versions.insert(idx, (ts, value))
 
                 if ttl is not None:
-                    if ttl <= 0:
-                        raise ChronoMapValueError(f"TTL must be positive, got {ttl}")
                     self._ttl[key] = self._current_time() + ttl
 
                 self._auto_prune(key)

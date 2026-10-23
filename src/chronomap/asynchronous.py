@@ -100,6 +100,8 @@ class AsyncChronoMap:
     ) -> None:
         self._validate_key(key)
         ts = self._parse_timestamp(timestamp) if timestamp is not None else self._current_time()
+        if ttl is not None and ttl <= 0:
+            raise ChronoMapValueError(f"TTL must be positive, got {ttl}")
 
         async with self._lock:
             old_value = None
@@ -115,8 +117,6 @@ class AsyncChronoMap:
                 versions.insert(idx, (ts, value))
 
             if ttl is not None:
-                if ttl <= 0:
-                    raise ChronoMapValueError(f"TTL must be positive, got {ttl}")
                 self._ttl[key] = self._current_time() + ttl
 
             self._auto_prune(key)
