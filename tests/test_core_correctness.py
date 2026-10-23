@@ -125,6 +125,17 @@ def test_put_keeps_previous_version_when_ttl_is_rejected():
 
 
 @pytest.mark.ttl
+def test_rejected_ttl_keeps_cached_read_consistent():
+    cm = ChronoMap(cache_size=10, enable_ttl_cleanup=False)
+    cm.put("k", "old", timestamp=10)
+    assert cm["k"] == "old"
+    with pytest.raises(ChronoMapValueError):
+        cm.put("k", "new", timestamp=20, ttl=0)
+    assert cm["k"] == "old"
+    assert cm.history("k") == [(10, "old")]
+
+
+@pytest.mark.ttl
 def test_put_many_rejects_bad_ttl_before_writing_any_item():
     cm = ChronoMap(enable_ttl_cleanup=False)
     with pytest.raises(ChronoMapValueError):

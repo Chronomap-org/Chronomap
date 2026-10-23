@@ -280,11 +280,6 @@ read, 3.1 ms to 5.3 us per write with a 50k-entry cache, and 669 ms to
 - Added the `persistence` pytest marker and subsystem path filter.
 
 ### Fixed
-- **Invalid TTLs were rejected after the write had already happened.**
-  `put()` / `put_many()` (and `AsyncChronoMap.put()`) inserted the value
-  before raising for `ttl <= 0`, leaving a write behind despite the
-  exception and, if the old value was cached, returning that stale value.
-  TTL is now validated before any mutation.
 - **Writing to a key whose TTL had expired produced an invisible value.**
   `put()` / `put_many()` (and `AsyncChronoMap.put()`) left the stale TTL
   entry in place, so the freshly written value was immediately treated as

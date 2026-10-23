@@ -632,8 +632,6 @@ class ChronoMap:
         self._validate_ttl(ttl)
         ts = self._parse_timestamp(timestamp) if timestamp is not None else self._current_time()
         self._validate_timestamp(ts)
-        if ttl is not None and ttl <= 0:
-            raise ChronoMapValueError(f"TTL must be positive, got {ttl}")
 
         self._acquire_write()
         try:
@@ -661,8 +659,6 @@ class ChronoMap:
                 idx = insertion_point(versions, ts)
                 versions.insert(idx, (ts, value))
 
-            if ttl is not None:
-                self._ttl[key] = self._current_time() + ttl
             if expires_at is not None:
                 self._ttl[key] = expires_at
 
@@ -1238,8 +1234,6 @@ class ChronoMap:
         self._validate_ttl(ttl)
         ts = self._parse_timestamp(timestamp) if timestamp is not None else self._current_time()
         self._validate_timestamp(ts)
-        if ttl is not None and ttl <= 0:
-            raise ChronoMapValueError(f"TTL must be positive, got {ttl}")
         keys = list(items.keys())
         for key in keys:
             self._validate_key(key)
@@ -1271,8 +1265,6 @@ class ChronoMap:
                     idx = insertion_point(versions, ts)
                     versions.insert(idx, (ts, value))
 
-                if ttl is not None:
-                    self._ttl[key] = self._current_time() + ttl
                 if expires_at is not None:
                     self._ttl[key] = expires_at
 

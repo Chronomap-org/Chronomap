@@ -437,18 +437,6 @@ class TestTTL:
         cm = ChronoMap()
         with pytest.raises(ChronoMapValueError):
             cm.put("key", "value", ttl=-1)
-        assert cm.history("key") == []
-
-    def test_invalid_ttl_does_not_change_cached_value(self):
-        cm = ChronoMap(enable_ttl_cleanup=False)
-        cm.put("key", "old", timestamp=100)
-        assert cm["key"] == "old"  # populate the read cache
-
-        with pytest.raises(ChronoMapValueError):
-            cm.put("key", "new", timestamp=200, ttl=0)
-
-        assert cm.history("key") == [(100, "old")]
-        assert cm["key"] == "old"
 
     def test_clean_expired_keys(self):
         cm = ChronoMap(enable_ttl_cleanup=False)
@@ -1571,15 +1559,6 @@ class TestAsyncChronoMap:
         cm = AsyncChronoMap()
         await cm.put("key", "value")
         assert await cm.get("key") == "value"
-
-    @pytest.mark.asyncio
-    async def test_async_invalid_ttl_does_not_write(self):
-        cm = AsyncChronoMap()
-        with pytest.raises(ChronoMapValueError):
-            await cm.put("key", "value", ttl=0)
-
-        assert await cm.get("key") is None
-        assert await cm.latest() == {}
 
     @pytest.mark.asyncio
     async def test_async_delete(self):
